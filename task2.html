@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Escape Room - Task 2</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #ffcc00;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background: #ffcc00;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #ffaa00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Task 2</h1>
+  <p>Solve the puzzle and enter the answer below:</p>
+
+  <input type="text" id="answer" placeholder="Enter answer here" />
+  <button id="submitBtn">Submit</button>
+
+  <p id="status"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+      authDomain: "escaperoom-53adb.firebaseapp.com",
+      projectId: "escaperoom-53adb",
+      storageBucket: "escaperoom-53adb.firebasestorage.app",
+      messagingSenderId: "379297108835",
+      appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+      databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const correctAnswer = "redlight"; // change to your actual puzzle answer
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+      const status = document.getElementById("status");
+
+      if (!userAnswer) {
+        status.textContent = "Please enter an answer!";
+        status.style.color = "red";
+        return;
+      }
+
+      if (userAnswer === correctAnswer.toLowerCase()) {
+        // Update level to 2 in Firebase
+        set(ref(db, "level"), 3)
+          .then(() => {
+            status.textContent = "Correct! Task 2 complete.";
+            status.style.color = "lightgreen";
+          })
+          .catch((err) => {
+            status.textContent = "Error: " + err;
+            status.style.color = "red";
+          });
+      } else {
+        status.textContent = "Wrong answer. Try again.";
+        status.style.color = "red";
+      }
+    });
+  </script>
+
+</body>
+</html>
+

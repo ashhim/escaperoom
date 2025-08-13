@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TV Display</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 100px; }
+    h1 { font-size: 3rem; }
+  </style>
+</head>
+<body>
+  <h1 id="display">Waiting for updates...</h1>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+      authDomain: "escaperoom-53adb.firebaseapp.com",
+      projectId: "escaperoom-53adb",
+      storageBucket: "escaperoom-53adb.firebasestorage.app",
+      messagingSenderId: "379297108835",
+      appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+      databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Listen for changes in the database
+    const displayRef = ref(db, "tvMessage");
+    onValue(displayRef, (snapshot) => {
+      const data = snapshot.val();
+      document.getElementById("display").textContent = data || "No message yet";
+    });
+  </script>
+</body>
+</html>

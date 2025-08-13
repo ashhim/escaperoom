@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Update TV Message</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <h2>Send a message to the TV</h2>
+  <input type="text" id="message" placeholder="Enter your message" />
+  <button id="sendBtn">Send</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+      authDomain: "escaperoom-53adb.firebaseapp.com",
+      projectId: "escaperoom-53adb",
+      storageBucket: "escaperoom-53adb.firebasestorage.app",
+      messagingSenderId: "379297108835",
+      appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+      databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const message = document.getElementById("message").value;
+      if (message.trim() !== "") {
+        set(ref(db, "tvMessage"), message)
+          .then(() => alert("Message sent to TV!"))
+          .catch((err) => alert("Error: " + err));
+      } else {
+        alert("Please enter a message first.");
+      }
+    });
+  </script>
+</body>
+</html>

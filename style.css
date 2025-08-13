@@ -1,0 +1,103 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+h2 {
+  color: #ffcc00;
+}
+
+.rule-display {
+  font-size: 2rem;
+  margin: 10px 0;
+  padding: 10px;
+  background: #222;
+  border-radius: 8px;
+}
+
+.clock {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 20px auto;
+  border: 5px solid #ffcc00;
+  border-radius: 50%;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 80px;
+  background: red;
+  transform-origin: bottom;
+  transform: rotate(0deg);
+}
+
+.numbers {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.numbers span {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.numbers span:nth-child(1) { top: 10%; left: 50%; }
+.numbers span:nth-child(2) { top: 30%; left: 90%; }
+.numbers span:nth-child(3) { top: 70%; left: 90%; }
+.numbers span:nth-child(4) { top: 90%; left: 50%; }
+.numbers span:nth-child(5) { top: 50%; left: 10%; }
+
+.progress-track {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  padding: 10px;
+  background: #333;
+  border-radius: 10px;
+}
+
+.stage {
+  background: #555;
+  padding: 10px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  line-height: 20px;
+}
+
+.stage.active {
+  background: #ffcc00;
+  color: #000;
+}
+
+.avatar {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  font-size: 2rem;
+  transition: left 1s ease;
+}
+
+.final-message {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: #0f0;
+}
