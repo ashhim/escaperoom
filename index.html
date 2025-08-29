@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Escape Room Game System</title> 
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      overflow-x: hidden;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background 0.5s ease;
+    }
+    
+    /* Added game-specific background colors */
+    body.game1-theme { background: linear-gradient(135deg, #ff6b6b, #ff8e8e); }
+    body.game2-theme { background: linear-gradient(135deg, #4ecdc4, #7ed6d1); }
+    body.game3-theme { background: linear-gradient(135deg, #45b7d1, #74c7e3); }
+    body.game4-theme { background: linear-gradient(135deg, #96ceb4, #b8dcc6); }
+    body.game5-theme { background: linear-gradient(135deg, #feca57, #fed976); }
+    
+    /* Added default background for when no game is active */
+    body:not(.game1-theme):not(.game2-theme):not(.game3-theme):not(.game4-theme):not(.game5-theme) {
+      background: linear-gradient(#6ec6ff, #b3e5fc);
+    }
+    
+    /* Added ready screen overlay */
+    .ready-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #111; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12vw; font-weight: bold;
+      z-index: 1000;
+    }
+    
+    .game-over-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgb(179, 0, 0); color: white;
+      font-size: 15vw; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000;
+    }
+    
+    .timer-display {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 33vw; font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 5px rgba(44, 44, 44, 0.2);
+      text-shadow: 4px 4px 15px rgba(0, 255, 85, 0.2);
+      pointer-events: none; z-index: 999;
+    }
+    
+    /* Added game selection menu styles */
+    .game-selection {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+      color: white;
+    }
+    
+    .game-selection h1 {
+      font-size: 8rem; /* Bigger, more impactful */
+      font-weight: 900; /* Super bold */
+      font-style: normal; /* No italic */
+      text-transform: uppercase; /* Gaming/Squid Game vibe */
+      letter-spacing: 4px; /* Spaced-out bold text */
+
+      color: #ffffff;
+      background: #000000;
+      margin: 0;
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+
+      /* Old TV look */
+      filter: grayscale(100%) contrast(220%) brightness(1.1);
+      text-shadow: 0 0 10px #fff, 0 0 20px #999;
+
+      /* Animations */
+      animation: tv-shake 0.2s infinite, tv-flicker 1s infinite alternate;
+    }
+    
+    /* Micro jitter shake */
+    @keyframes tv-shake {
+      0%   { transform: translate(0, 0) }
+      25%  { transform: translate(2px, -1px) }
+      50%  { transform: translate(-2px, 2px) }
+      75%  { transform: translate(1px, 2px) }
+      100% { transform: translate(0, 0) }
+    }
+    
+    /* Old TV flicker/glitch */
+    @keyframes tv-flicker {
+      0%   { opacity: 1; text-shadow: 0 0 5px #fff, 0 0 15px #aaa; }
+      20%  { opacity: 0.85; text-shadow: 2px 0 #f0f0f0, -2px 0 #888; }
+      40%  { opacity: 1; text-shadow: -2px 0 #fff, 2px 2px #777; }
+      60%  { opacity: 0.9; text-shadow: 3px -2px #ccc, -3px 2px #999; }
+      80%  { opacity: 1; text-shadow: 0 0 8px #fff, 0 0 20px #bbb; }
+      100% { opacity: 0.9; text-shadow: -1px 1px #eee, 1px -1px #aaa; }
+    }
+    
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      padding: 0 20px;
+    }
+    
+    .game-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-align: center;
+    }
+    
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 204, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(255, 204, 0, 0.2);
+    }
+    
+    .game-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    
+    .game-card.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: rgba(100, 100, 100, 0.3);
+    }
+    
+    .game-card.disabled:hover {
+      transform: none;
+      border-color: transparent;
+      box-shadow: none;
+    }
+    
+    /* Added progress section with avatar and level map */
+    .progress-section { 
+      position: relative; 
+      margin-top: 30px; 
+      padding: 0 50px;
+    }
+    
+    .progress-track { 
+      position: relative; 
+      height: 250px; 
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+.stage {
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  position: absolute; 
+  width: 100px; 
+  height: 100px;
+  animation: popStage 0.5s ease-in-out;
+  z-index: 2;
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent; /* no background */
+  box-shadow: none;        /* no shadow */
+}
+
+.stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%; /* ensures image stays circular */
+}
+
+
+.stage.active {
+  transform: scale(1.4);
+  transition: transform 0.3s ease;
+  box-shadow: none; /* remove glowing effect */
+}
+
+@keyframes popStage {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+#stage1 { top: 0; left: 0%; }
+#stage2 { top: 150px; left: 20%; }
+#stage3 { top: 0; left: 40%; }
+#stage4 { top: 150px; left: 60%; }
+#stage5 { bottom: 210px; left: 83%; }
+
+    
+    /* Updated finish line styling for image */
+    .finish-line {
+      position: absolute;
+      top: 50px;
+      left: 93%;
+      width: 150px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: wave 2s ease-in-out infinite;
+      z-index: 2;
+      overflow: hidden;
+    }
+    
+    .finish-line img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    svg.curve-path { 
+      position: absolute; 
+      top: 0; left: 0; 
+      width: 100%; height: 250px; 
+      z-index: 1; 
+    }
+    
+    path {
+      stroke: #fff; stroke-width: 4;
+      stroke-dasharray: 10 8; fill: none;
+      filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.4));
+    }
+    
+    .avatar {
+      position: absolute; width: 100px; height: 100px;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+    }
+    
+    .final-message {
+      font-size: 2rem; color: #79ad8f;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-top: 20px;
+      text-align: center;
+      animation: pulse 1s infinite alternate;
+    }
+    
+    /* Added full screen final message styles */
+    .final-message.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgb(0, 0, 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8vw;
+      font-weight: bold;
+      color: white;
+      z-index: 3000;
+      margin-top: 0;
+    }
+    
+    @keyframes pulse { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+    
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- Added ready screen overlay -->
+<div id="readyScreen" class="ready-screen">Are You Ready</div>
+
+<!-- Added game over screen -->
+<div id="gameOverScreen" class="game-over-screen hidden">GAME OVER</div>
+
+<!-- Added game selection overlay -->
+<div id="gameSelection" class="game-selection">
+  <h1>ARE YOU READY</h1>
+</div>
+
+<!-- Added game container with avatar and level progression -->
+<div id="gameContainer" class="container hidden">
+  <div class="timer-display" id="timerDisplay">10:00</div>
+  <div class="progress-section">
+    <div class="progress-track">
+      <svg class="curve-path">
+        <path id="path1" d="M30,30 C150,150 150,150 220,180" />
+        <path id="path2" d="M220,180 C300,30 300,30 400,30" />
+        <path id="path3" d="M400,30 C500,150 500,150 600,180" />
+        <path id="path4" d="M620,180 C700,30 800,30 800,30" />
+        <!-- Added path5 to finish line -->
+        <path id="path5" d="M800,30 C600,300 850,100 900,125" />
+      </svg>
+      <img class="stage" id="stage1" src="stages/stage1.png" alt="Stage 1" />
+      <img class="stage" id="stage2" src="stages/stage2.png" alt="Stage 2" />
+      <img class="stage" id="stage3" src="stages/stage3.png" alt="Stage 3" />
+      <img class="stage" id="stage4" src="stages/stage4.png" alt="Stage 4" />
+      <img class="stage" id="stage5" src="stages/stage5.png" alt="Stage 5" />
+      <!-- Updated finish line styling for image -->
+      <img class="finish-line" src="stages/finishline.png" alt="Finish Line" />
+      <img id="avatar" class="avatar" src="images/player.png" alt="Player" />
+    </div>
+  </div>
+  <div class="final-message" id="finalMessage"></div>
+</div>
+
+<!-- Added audio elements for game sounds -->
+<audio id="startAudio" src="mp3/start.mp3" preload="auto"></audio>
+<audio id="readyAudio" src="mp3/ready.mp3" preload="auto" loop></audio>
+<audio id="over1Audio" src="mp3/over1.mp3" preload="auto"></audio>
+<audio id="over2Audio" src="mp3/over2.mp3" preload="auto"></audio>
+<audio id="greenLight" src="mp3/greenlight.mp3" preload="auto"></audio>
+<audio id="redLight" src="mp3/redlight.mp3" preload="auto"></audio>
+<audio id="winAudio" src="win.mp3" preload="auto"></audio>
+
+<!-- Level music -->
+<audio id="level1Music" src="mp3/level1.mp3" preload="auto" loop></audio>
+<audio id="level2Music" src="mp3/level2.mp3" preload="auto" loop></audio>
+<audio id="level3Music" src="mp3/level3.mp3" preload="auto" loop></audio>
+<audio id="level4Music" src="mp3/level4.mp3" preload="auto" loop></audio>
+<audio id="level5Music" src="mp3/level5.mp3" preload="auto" loop></audio>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+  authDomain: "escaperoom-53adb.firebaseapp.com",
+  projectId: "escaperoom-53adb",
+  storageBucket: "escaperoom-53adb.appspot.com",
+  messagingSenderId: "379297108835",
+  appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+  databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const gameSelection = document.getElementById("gameSelection");
+const gameCards = document.querySelectorAll(".game-card");
+const body = document.body;
+
+const avatar = document.getElementById("avatar");
+const stages = document.querySelectorAll(".stage");
+const finalMessage = document.getElementById("finalMessage");
+const timerDisplay = document.getElementById("timerDisplay");
+const readyScreen = document.getElementById("readyScreen");
+const gameContainer = document.getElementById("gameContainer");
+const gameOverScreen = document.getElementById("gameOverScreen");
+
+const startAudio = document.getElementById("startAudio");
+const readyAudio = document.getElementById("readyAudio");
+const over1Audio = document.getElementById("over1Audio");
+const over2Audio = document.getElementById("over2Audio");
+const greenLight = document.getElementById("greenLight");
+const redLight = document.getElementById("redLight");
+const winAudio = document.getElementById("winAudio");
+
+const levelMusic = [
+  null,
+  document.getElementById("level1Music"),
+  document.getElementById("level2Music"),
+  document.getElementById("level3Music"),
+  document.getElementById("level4Music"),
+  document.getElementById("level5Music")
+];
+
+let countdownDuration = 10 * 60;
+let countdownInterval = null;
+let timerStarted = false;
+let currentLevel = 1;
+let isMovingToFinish = false;
+
+gameCards.forEach(card => {
+  card.addEventListener('click', async () => {
+    if (card.classList.contains('disabled')) return;
+    
+    const gameNum = card.dataset.game;
+    const theme = card.dataset.theme;
+    
+    // Apply theme
+    body.className = theme;
+    
+    // Save theme preference to localStorage
+    localStorage.setItem('selectedTheme', theme);
+    
+    // Hide game selection
+    gameSelection.classList.add('hidden');
+    
+    // Start the selected game
+    await startGame(gameNum);
+  });
+});
+
+async function startGame(gameNum) {
+  try {
+    // Set active game and reset game state
+    await set(ref(db, 'activeGame'), parseInt(gameNum));
+    await set(ref(db, 'timer/remaining'), 600);
+    await set(ref(db, 'level'), 1);
+    await set(ref(db, 'finalMessage'), '');
+    await set(ref(db, 'timer/start'), true);
+    
+    console.log(`[v0] Started Game ${gameNum}`);
+  } catch (error) {
+    console.error('[v0] Error starting game:', error);
+  }
+}
+
+function stopAllLevelMusic() {
+  levelMusic.forEach(m => { if (m) { m.pause(); m.currentTime = 0; } });
+}
+
+function startReadyMusic() {
+  readyAudio.currentTime = 0;
+  readyAudio.play().catch(()=>{});
+}
+
+function stopReadyMusic() {
+  readyAudio.pause();
+  readyAudio.currentTime = 0;
+}
+
+function moveAlongPath(pathId, onComplete, levelNum) {
+  stopAllLevelMusic();
+  const path = document.getElementById(pathId);
+  if (!path) return;
+  
+  const length = path.getTotalLength();
+  let progress = 0;
+
+  greenLight.currentTime = 0;
+  greenLight.play().catch(()=>{});
+
+  function step() {
+    progress += 2;
+    if (progress > length) {
+      greenLight.pause(); greenLight.currentTime = 0;
+      redLight.currentTime = 0;
+      redLight.play().then(() => {
+        redLight.onended = () => {
+          if (levelNum && levelNum <= 5) {
+            levelMusic[levelNum]?.play().catch(()=>{});
+          }
+          if (onComplete) onComplete();
+        };
+      }).catch(()=>{});
+      return;
+    }
+    const point = path.getPointAtLength(progress);
+    const jump = Math.sin(progress / 15) * 8;
+    avatar.style.left = `${point.x}px`;
+    avatar.style.top = `${point.y - jump}px`;
+    requestAnimationFrame(step);
+  }
+  step();
+}
+
+function placeAtStage(stageId) {
+  const stage = document.getElementById(stageId);
+  if (!stage) return;
+  
+  const rect = stage.getBoundingClientRect();
+  const parentRect = stage.parentElement.getBoundingClientRect();
+  avatar.style.left = `${rect.left - parentRect.left + rect.width / 2}px`;
+  avatar.style.top = `${rect.top - parentRect.top + rect.height / 2}px`;
+}
+
+function goToLevel(level) {
+  if (level <= 1) return;
+  
+  if (level === 6) {
+    isMovingToFinish = true;
+    moveAlongPath("path5", () => { 
+      currentLevel = level;
+      setTimeout(() => {
+        set(ref(db, 'finalMessage'), 'Game Completed');
+      }, 500);
+    }, null); // No level music for final path
+  } else {
+    moveAlongPath(`path${level - 1}`, () => { 
+      currentLevel = level; 
+    }, level);
+  }
+}
+
+onValue(ref(db, 'activeGame'), (snapshot) => {
+  const activeGame = snapshot.val();
+  
+  if (activeGame) {
+    const themeClass = `game${activeGame}-theme`;
+    body.className = themeClass;
+  } else {
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme) {
+      body.className = savedTheme;
+    } else {
+      body.className = '';
+    }
+  }
+  
+  // Update game card states
+  gameCards.forEach(card => {
+    const cardGame = parseInt(card.dataset.game);
+    if (activeGame && activeGame !== cardGame) {
+      card.classList.add('disabled');
+      card.innerHTML = card.innerHTML.replace('<p>', '<p>🔒 Another game is active - ');
+    } else {
+      card.classList.remove('disabled');
+      // Reset card text (you might want to store original text)
+    }
+  });
+  
+  if (!activeGame) {
+    // No active game - show selection screen
+    gameSelection.classList.remove('hidden');
+    gameContainer.classList.add('hidden');
+    readyScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+  }
+});
+
+onValue(ref(db, "timer/start"), (snapshot) => {
+  const startFlag = snapshot.val();
+  if (startFlag && !timerStarted) {
+    gameOverScreen.classList.add('hidden');
+    readyScreen.classList.add('hidden');
+    gameSelection.classList.add('hidden');
+    gameContainer.classList.remove('hidden');
+
+    stopReadyMusic();
+    startAudio.currentTime = 0;
+    startAudio.play().then(() => {
+      startAudio.onended = () => {
+        levelMusic[1]?.play().catch(()=>{});
+      };
+    }).catch(()=>{});
+
+    timerStarted = true;
+    startCountdown();
+  }
+  if (!startFlag) {
+    stopCountdown();
+    stopAllLevelMusic();
+    winAudio.pause();
+    winAudio.currentTime = 0;
+    gameContainer.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    readyScreen.classList.remove('hidden');
+    currentLevel = 1;
+    isMovingToFinish = false;
+    placeAtStage("stage1");
+    countdownDuration = 10 * 60;
+    updateTimerDisplay(countdownDuration);
+    finalMessage.textContent = "";
+    startReadyMusic();
+  }
+});
+
+function startCountdown() {
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    if (countdownDuration <= 0) {
+      clearInterval(countdownInterval);
+      timerDisplay.textContent = "00:00";
+      set(ref(db, "finalMessage"), "Time's up! Game Over!");
+      showGameOver();
+      return;
+    }
+    countdownDuration--;
+    updateTimerDisplay(countdownDuration);
+    set(ref(db, "timer/remaining"), countdownDuration);
+  }, 1000);
+}
+
+function stopCountdown() {
+  clearInterval(countdownInterval);
+  timerStarted = false;
+}
+
+function stopCountdownCompletely() {
+  clearInterval(countdownInterval);
+  countdownInterval = null;
+  timerStarted = false;
+}
+
+function updateTimerDisplay(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  timerDisplay.textContent = `${mins.toString().padStart(2,"0")}:${secs.toString().padStart(2,"0")}`;
+}
+
+function showGameOver() {
+  gameContainer.classList.add("hidden");
+  gameOverScreen.classList.remove("hidden");
+  stopAllLevelMusic();
+  over1Audio.pause(); over2Audio.pause();
+  over1Audio.currentTime = 0; over2Audio.currentTime = 0;
+  over1Audio.play().then(() => {
+    over1Audio.onended = () => {
+      gameOverScreen.textContent = "Eliminated";
+      over2Audio.play().catch(()=>{});
+    };
+  }).catch(()=>{});
+}
+
+onValue(ref(db, "timer/remaining"), (snapshot) => {
+  const remaining = snapshot.val();
+  if (remaining !== null) {
+    countdownDuration = remaining;
+    updateTimerDisplay(remaining);
+  }
+});
+
+onValue(ref(db, "level"), (snapshot) => {
+  const level = snapshot.val();
+  if (!level) return;
+  stages.forEach((stage,index) => stage.classList.toggle("active", index < level));
+  if (level > currentLevel) goToLevel(level);
+  else if (level < currentLevel) {
+    currentLevel = level;
+    if(level===1) placeAtStage("stage1");
+  }
+});
+
+onValue(ref(db, "finalMessage"), (snapshot) => {
+  const message = snapshot.val() || "";
+  
+  if (message.includes("Complete") || message === "Congratulations") {
+    if (currentLevel === 5 && !isMovingToFinish) {
+      isMovingToFinish = true;
+      moveAlongPath("path5", () => {
+        showWinScreen(message);
+      }, null);
+      return; // Don't show win screen yet
+    } else {
+      showWinScreen(message);
+    }
+  } else if (message) {
+    finalMessage.textContent = message;
+    finalMessage.classList.add("fullscreen");
+  } else {
+    finalMessage.textContent = "";
+    finalMessage.classList.remove("fullscreen");
+  }
+});
+
+function showWinScreen(message) {
+  finalMessage.textContent = message;
+  finalMessage.classList.add("fullscreen");
+  
+  // Stop ALL audio immediately
+  stopAllLevelMusic();
+  stopReadyMusic();
+  startAudio.pause(); startAudio.currentTime = 0;
+  over1Audio.pause(); over2Audio.currentTime = 0;
+  over2Audio.pause(); over2Audio.currentTime = 0;
+  greenLight.pause(); greenLight.currentTime = 0;
+  redLight.pause(); redLight.currentTime = 0;
+  
+  // Stop countdown timer completely
+  stopCountdownCompletely();
+  
+  // Play win sound
+  winAudio.currentTime = 0;
+  winAudio.play().catch(() => {});
+}
+
+window.addEventListener("load", () => {
+  placeAtStage("stage1");
+  startReadyMusic();
+  
+  // Apply saved theme if no active game
+  const savedTheme = localStorage.getItem('selectedTheme');
+  if (savedTheme && !body.className) {
+    body.className = savedTheme;
+  }
+});
+</script>
+</body>
+</html>

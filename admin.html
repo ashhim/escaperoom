@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Escape Room Admin Control</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #ffcc00;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      margin: 20px;
+      border-radius: 8px;
+      border: none;
+      background: #ff4444;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #cc0000;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.1rem;
+    }
+    /* Added game status display styles */
+    .game-status {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: left;
+    }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .status-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #ffcc00;
+    }
+    .back-link {
+      display: inline-block;
+      background: #4ecdc4;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Escape Room - Admin Control</h1>
+  <p>Monitor and control the escape room game system.</p>
+
+  <!-- Added back navigation link -->
+  <a href="index.html" class="back-link">← Back to Main Menu</a>
+
+  <!-- Added real-time game status display -->
+  <div class="game-status">
+    <h3>Current Game Status</h3>
+    <div class="status-grid">
+      <div class="status-item">
+        <strong>Active Game:</strong>
+        <div id="activeGameDisplay">None</div>
+      </div>
+      <div class="status-item">
+        <strong>Current Level:</strong>
+        <div id="levelDisplay">1</div>
+      </div>
+      <div class="status-item">
+        <strong>Timer:</strong>
+        <div id="timerDisplay">10:00</div>
+      </div>
+      <div class="status-item">
+        <strong>Status:</strong>
+        <div id="gameStatusDisplay">Ready</div>
+      </div>
+    </div>
+  </div>
+
+  <button id="resetBtn">Reset Game System</button>
+
+  <p id="status"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+      authDomain: "escaperoom-53adb.firebaseapp.com",
+      projectId: "escaperoom-53adb",
+      storageBucket: "escaperoom-53adb.firebasestorage.app",
+      messagingSenderId: "379297108835",
+      appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+      databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    onValue(ref(db, "activeGame"), (snapshot) => {
+      const activeGame = snapshot.val();
+      document.getElementById("activeGameDisplay").textContent = activeGame ? activeGame.toUpperCase() : "None";
+    });
+
+    onValue(ref(db, "level"), (snapshot) => {
+      const level = snapshot.val();
+      document.getElementById("levelDisplay").textContent = level || "1";
+    });
+
+    onValue(ref(db, "timer/remaining"), (snapshot) => {
+      const remaining = snapshot.val();
+      if (remaining !== null) {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        document.getElementById("timerDisplay").textContent = `${mins.toString().padStart(2,"0")}:${secs.toString().padStart(2,"0")}`;
+      }
+    });
+
+    onValue(ref(db, "finalMessage"), (snapshot) => {
+      const finalMessage = snapshot.val();
+      const statusDisplay = document.getElementById("gameStatusDisplay");
+      if (finalMessage) {
+        if (finalMessage.includes("Complete")) {
+          statusDisplay.textContent = "Game Complete!";
+          statusDisplay.style.color = "#90EE90";
+        } else if (finalMessage.includes("GAME OVER") || finalMessage.includes("Eliminated")) {
+          statusDisplay.textContent = "Game Over";
+          statusDisplay.style.color = "#ff4444";
+        } else {
+          statusDisplay.textContent = finalMessage;
+          statusDisplay.style.color = "#ffcc00";
+        }
+      } else {
+        statusDisplay.textContent = "Ready";
+        statusDisplay.style.color = "#fff";
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      Promise.all([
+        set(ref(db, "rule"), null),
+        set(ref(db, "level"), 1),
+        set(ref(db, "finalMessage"), ""),
+        set(ref(db, "timer/start"), false),
+        set(ref(db, "timer/remaining"), 600),
+        set(ref(db, "activeGame"), null)
+      ])
+      .then(() => {
+        document.getElementById("status").textContent = "✅ Game system reset successfully! All games are now available.";
+        document.getElementById("status").style.color = "lightgreen";
+      })
+      .catch((err) => {
+        document.getElementById("status").textContent = "❌ Error: " + err;
+        document.getElementById("status").style.color = "red";
+      });
+    });
+  </script>
+
+</body>
+</html>

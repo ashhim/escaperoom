@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game 1 - Task 1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ff6b6b, #e1ff8e);
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .task-container {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    h1 { color: #fff; font-size: 2.5rem; margin-bottom: 20px; }
+    .puzzle { font-size: 1.3rem; margin: 20px 0; line-height: 1.6; }
+    input, button {
+      font-size: 1.2rem;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    input { width: 250px; background: rgba(255,255,255,0.9); color: #333; }
+    button { background: #fff; color: #ff6b6b; cursor: pointer; font-weight: bold; }
+    button:hover { background: #f0f0f0; }
+    #status { font-weight: bold; margin-top: 15px; }
+    .access-denied {
+      background: #333;
+      color: #ff4444;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .game-over-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(179, 0, 0, 0.95);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      font-weight: bold;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="task-container">
+<h1 style="color: black;">The Turning Clock..</h1>
+
+  
+  <div id="gameCheck">
+    <div class="access-denied">
+      <h2>⚠️ Checking Game Access...</h2>
+      <p>Verifying active game session...</p>
+    </div>
+  </div>
+
+  <div id="taskContent" style="display: none;">
+    <div class="puzzle">
+      <p><strong>Decode this..</strong></p>
+    </div>
+
+    <!-- Added testing answer display -->
+    <div class="testing-info" style="background: rgba(0, 0, 0, 5); border: 2px solid #ff0000; padding: 15px; border-radius: 8px; margin: 20px 0;">
+      <strong>87-73-78-68-79-87-83</strong> 
+    </div>
+
+    <input type="text" id="answer" placeholder="Enter your answer" />
+    <br>
+    <button id="submitBtn">Submit Answer</button>
+    <!-- Added feedback div for in-page responses -->
+    <div id="feedback" style="margin-top: 15px; font-size: 1.2rem; font-weight: bold;"></div>
+    <p id="status"></p>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+    authDomain: "escaperoom-53adb.firebaseapp.com",
+    projectId: "escaperoom-53adb",
+    storageBucket: "escaperoom-53adb.firebasestorage.app",
+    messagingSenderId: "379297108835",
+    appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+    databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const correctAnswer = "windows"; 
+  const requiredLevel = 1;
+  const nextLevel = 2;
+  const gameId = 2;
+
+  // Check game access
+  async function checkAccess() {
+    try {
+      const activeGameSnap = await get(ref(db, "activeGame"));
+      const levelSnap = await get(ref(db, "level"));
+      
+      const activeGame = activeGameSnap.val();
+      const currentLevel = levelSnap.val();
+
+      if (activeGame !== gameId) {
+        document.getElementById("gameCheck").innerHTML = `
+          <div class="access-denied">
+            <h2>🚫 Access Denied</h2>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentLevel !== requiredLevel) {
+        document.getElementById("gameCheck").innerHTML = `
+          <div class="access-denied">
+            <h2>🔒 Level Locked</h2>
+          </div>
+        `;
+        return;
+      }
+
+      // Access granted
+      document.getElementById("gameCheck").style.display = "none";
+      document.getElementById("taskContent").style.display = "block";
+
+    } catch (err) {
+      document.getElementById("gameCheck").innerHTML = `
+        <div class="access-denied">
+          <h2>❌ Error</h2>
+          <p>Failed to verify access: ${err.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Submit answer
+  document.getElementById("submitBtn").addEventListener("click", async () => {
+    const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+    const status = document.getElementById("status");
+    const feedback = document.getElementById("feedback");
+    
+    if (!userAnswer) {
+      feedback.innerHTML = "❌ Please enter an answer!";
+      feedback.style.color = "#ff4444";
+      return;
+    }
+
+    if (userAnswer === correctAnswer.toLowerCase()) {
+      try {
+        await set(ref(db, "level"), nextLevel);
+        feedback.innerHTML = "✅ Correct!";
+        feedback.style.color = "#90EE90";
+        document.getElementById("answer").value = "";
+        
+        // Redirect to c1t1.html after correct answer
+        setTimeout(() => {
+          window.location.href = "c1t1.html";
+        }, 1500);
+
+      } catch (err) {
+        feedback.innerHTML = "❌ Error updating level: " + err.message;
+        feedback.style.color = "#ff4444";
+      }
+    } else {
+      feedback.innerHTML = "❌ Wrong answer. Try again!";
+      feedback.style.color = "#ff4444";
+    }
+  });
+
+  onValue(ref(db, "finalMessage"), (snapshot) => {
+    const finalMessage = snapshot.val();
+    if (finalMessage && (finalMessage.includes("GAME OVER") || finalMessage.includes("Eliminated") || finalMessage.includes("Time's up"))) {
+      const overlay = document.createElement("div");
+      overlay.className = "game-over-overlay";
+      overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(179, 0, 0, 0.95); color: white; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: bold; z-index: 1000;";
+      overlay.textContent = finalMessage;
+      document.body.appendChild(overlay);
+      document.getElementById("submitBtn").disabled = true;
+      document.getElementById("answer").disabled = true;
+    }
+  });
+
+  // Initialize
+  checkAccess();
+</script>
+
+</body>
+</html>

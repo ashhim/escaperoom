@@ -1,0 +1,101 @@
+/* General page setup */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #111;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  text-align: center;
+}
+
+/* Rule section */
+.rule-section {
+  margin-bottom: 30px;
+}
+
+.rule-section h2 {
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.rule-display {
+  font-size: 1.5em;
+  padding: 15px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  display: inline-block;
+  min-width: 150px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Countdown timer */
+.timer {
+  margin-top: 20px;
+  font-size: 2em;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  display: inline-block;
+}
+
+/* Progress section */
+.progress-section {
+  margin-top: 40px;
+}
+
+.progress-section h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.progress-track {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.stage {
+  background-color: #444;
+  padding: 15px;
+  border-radius: 50%;
+  font-size: 1.2em;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stage.completed {
+  background-color: #28a745;
+  color: #fff;
+}
+
+/* Avatar position */
+.avatar {
+  position: absolute;
+  top: -40px;
+  font-size: 2em;
+  transition: left 0.5s ease;
+}
+
+/* Final message */
+.final-message {
+  margin-top: 30px;
+  font-size: 2em;
+  color: #f00;
+  font-weight: bold;
+}

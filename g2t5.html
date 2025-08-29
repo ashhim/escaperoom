@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Last Bridge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #c46bff, #8effff);
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .task-container {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    h1 { color: #fff; font-size: 2.5rem; margin-bottom: 20px; }
+    .puzzle { font-size: 1.3rem; margin: 20px 0; line-height: 1.6; }
+    button {
+      font-size: 1.2rem;
+      padding: 15px 25px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #fff;
+      color: #ff6b6b;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover { background: #f0f0f0; }
+    #status { font-weight: bold; margin-top: 15px; }
+    .access-denied {
+      background: #333;
+      color: #ff4444;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .game-over-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(179, 0, 0, 0.95);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      font-weight: bold;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+<div class="task-container">
+  <h1>Point of No Return</h1>
+  
+  <div id="gameCheck">
+    <div class="access-denied">
+      <h2>⚠️ Checking Game Access...</h2>
+      <p>Verifying active game session...</p>
+    </div>
+  </div>
+
+  <div id="taskContent" style="display: none;">
+    <div class="puzzle">
+      <p style="color: red;">click the button</p>
+    </div>
+
+    <!-- Finish Button -->
+    <button id="finishBtn" style="color: green;">Finish Game</button>
+    <p id="status"></p>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+    authDomain: "escaperoom-53adb.firebaseapp.com",
+    projectId: "escaperoom-53adb",
+    storageBucket: "escaperoom-53adb.firebasestorage.app",
+    messagingSenderId: "379297108835",
+    appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+    databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const requiredLevel = 5;
+  const gameId = 2;
+
+  // Check game access
+  async function checkAccess() {
+    try {
+      const activeGameSnap = await get(ref(db, "activeGame"));
+      const levelSnap = await get(ref(db, "level"));
+      const activeGame = activeGameSnap.val();
+      const currentLevel = levelSnap.val();
+
+      if (activeGame !== gameId) {
+        document.getElementById("gameCheck").innerHTML = `
+          <div class="access-denied">
+            <h2>🚫 Access Denied</h2>
+            <p>This task is for ${gameId.toUpperCase()}, but ${activeGame || 'no game'} is currently active.</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (currentLevel !== requiredLevel) {
+        document.getElementById("gameCheck").innerHTML = `
+          <div class="access-denied">
+            <h2>🔒 Level Locked</h2>
+          </div>
+        `;
+        return;
+      }
+
+      // Access granted
+      document.getElementById("gameCheck").style.display = "none";
+      document.getElementById("taskContent").style.display = "block";
+
+    } catch (err) {
+      document.getElementById("gameCheck").innerHTML = `
+        <div class="access-denied">
+          <h2>❌ Error</h2>
+          <p>Failed to verify access: ${err.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Finish game button (auto success)
+  document.getElementById("finishBtn").addEventListener("click", async () => {
+    const status = document.getElementById("status");
+
+    try {
+      await Promise.all([
+        set(ref(db, "level"), 5), // Stay at level 5
+          set(ref(db, "finalMessage"), "🎉 Game 1 Complete!")
+      ]);
+      status.textContent = "🎉 Congratulations! Game Complete!";
+      status.style.color = "#90EE90";
+    } catch (err) {
+      status.textContent = "❌ Error completing game: " + err.message;
+      status.style.color = "#ffcccc";
+    }
+  });
+
+  // Initialize
+  checkAccess();
+</script>
+
+</body>
+</html>

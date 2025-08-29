@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Last Bridge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #c46bff, #8effff);
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .task-container {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    h1 { color: #fff; font-size: 2.5rem; margin-bottom: 20px; }
+    .puzzle { font-size: 1.3rem; margin: 20px 0; line-height: 1.6; }
+    input, button {
+      font-size: 1.2rem;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    input { width: 250px; background: rgba(255,255,255,0.9); color: #333; }
+    button { background: #fff; color: #ff6b6b; cursor: pointer; font-weight: bold; }
+    button:hover { background: #f0f0f0; }
+    #status { font-weight: bold; margin-top: 15px; }
+    .access-denied {
+      background: #333;
+      color: #ff4444;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="task-container">
+  <h1>Point of No Return</h1>
+
+  <div id="taskContent">
+    <div class="puzzle">
+      <p>The Final One</p>
+    </div>
+
+    <div class="testing-info" style="background: rgb(0, 0, 0); border: 2px solid #ffff00; padding: 15px; border-radius: 8px; margin: 20px 0;">
+      <strong>I am made of many tiny pieces.<br>
+      But I am whole when I come together.<br>
+      I can be tricky, fun, and sometimes Stressful,<br>
+      What am I?</strong>
+    </div>
+
+    <input type="text" id="answer" placeholder="Enter your answer" />
+    <br>
+    <button id="submitBtn">Submit Answer</button>
+    <div id="status"></div>
+  </div>
+</div>
+
+<script>
+  const correctAnswer = "puzzle";
+
+  document.getElementById("submitBtn").addEventListener("click", () => {
+    const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+    const status = document.getElementById("status");
+
+    if (!userAnswer) {
+      status.textContent = "⚠️ Please enter an answer!";
+      status.style.color = "#ffcccc";
+      return;
+    }
+
+    if (userAnswer === correctAnswer) {
+      status.textContent = "🎉 Correct! Redirecting...";
+      status.style.color = "#90EE90";
+      setTimeout(() => {
+        window.location.href = "c1t4-5.html";
+      }, 1200);
+    } else {
+      status.textContent = "❌ Wrong answer. Try again!";
+      status.style.color = "#ffcccc";
+    }
+  });
+</script>
+
+</body>
+</html>

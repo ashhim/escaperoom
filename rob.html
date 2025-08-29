@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room Clue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        /* Crime scene tape background */
+        .tape {
+            position: absolute;
+            width: 100%;
+            height: 2rem;
+            background: repeating-linear-gradient(
+                45deg,
+                #ffeb3b,
+                #ffeb3b 20px,
+                #000 20px,
+                #000 40px
+            );
+            opacity: 0.1;
+        }
+
+        .tape:nth-child(1) {
+            top: 5rem;
+            left: 0;
+            transform: rotate(-12deg);
+        }
+
+        .tape:nth-child(2) {
+            top: 10rem;
+            right: 0;
+            transform: rotate(12deg);
+        }
+
+        .tape:nth-child(3) {
+            bottom: 5rem;
+            left: 0;
+            transform: rotate(12deg);
+        }
+
+        .tape:nth-child(4) {
+            bottom: 10rem;
+            right: 0;
+            transform: rotate(-12deg);
+        }
+
+        /* Spotlight effect */
+        .spotlight {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.8) 70%);
+            pointer-events: none;
+        }
+
+        /* Main evidence board */
+        .evidence-board {
+            position: relative;
+            max-width: 20rem;
+            background: #1a1a1a;
+            border: 2px solid #dc2626;
+            padding: 2rem;
+            transform: rotate(1deg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        .inner-board {
+            background: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            padding: 1.5rem;
+            transform: rotate(-1deg);
+            position: relative;
+        }
+
+        /* Pin decorations */
+        .pin {
+            position: absolute;
+            width: 1rem;
+            height: 1rem;
+            background: #dc2626;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .pin:nth-child(1) { top: -0.5rem; left: -0.5rem; }
+        .pin:nth-child(2) { top: -0.5rem; right: -0.5rem; }
+        .pin:nth-child(3) { bottom: -0.5rem; left: -0.5rem; }
+        .pin:nth-child(4) { bottom: -0.5rem; right: -0.5rem; }
+
+        /* Text styling */
+        .main-text {
+            color: #ef4444;
+            font-size: 1.125rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .hint-section {
+            border-top: 1px solid #4a4a4a;
+            padding-top: 1.5rem;
+            text-align: center;
+        }
+
+        .hint-text {
+            color: #fbbf24;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* Flickering effect */
+        .flicker {
+            position: absolute;
+            inset: 0;
+            background: #7f1d1d;
+            opacity: 0;
+            pointer-events: none;
+            animation: flicker 3s infinite;
+        }
+
+        /* Ambient particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: ping 2s infinite;
+        }
+
+        .particle:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            background: #ef4444;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            top: 75%;
+            right: 25%;
+            background: #fbbf24;
+            animation-delay: 1s;
+        }
+
+        .particle:nth-child(3) {
+            bottom: 25%;
+            left: 75%;
+            background: #ef4444;
+            animation-delay: 2s;
+        }
+
+        /* Animations */
+        @keyframes flicker {
+            0%, 95% { opacity: 0; }
+            96%, 100% { opacity: 0.1; }
+        }
+
+        @keyframes ping {
+            0% { transform: scale(1); opacity: 1; }
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .evidence-board {
+                max-width: 18rem;
+                padding: 1.5rem;
+            }
+            
+            .inner-board {
+                padding: 1rem;
+            }
+            
+            .main-text {
+                font-size: 1rem;
+            }
+            
+            .hint-text {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Crime scene tape background -->
+    <div class="tape"></div>
+    <div class="tape"></div>
+    <div class="tape"></div>
+    <div class="tape"></div>
+
+    <!-- Spotlight effect -->
+    <div class="spotlight"></div>
+
+    <!-- Main content -->
+    <div class="evidence-board">
+        <div class="inner-board">
+            <!-- Pins -->
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+
+            <!-- Main message -->
+            <div class="main-text">
+                someone stole key from me
+            </div>
+
+            <!-- Hint section -->
+            <div class="hint-section">
+            <div class="hint-text">Hint: you know who is it,<br> and remember this is the final QR you need to activate <br> by finding the QR to activate this button...<br>its on the most using thing in this room</div>
+            </div>
+        </div>
+
+        <!-- Flickering effect -->
+        <div class="flicker"></div>
+    </div>
+
+    <!-- Ambient particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+
+    <script>
+        // Add subtle interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const evidenceBoard = document.querySelector('.evidence-board');
+            
+            // Subtle hover effect
+            evidenceBoard.addEventListener('mouseenter', function() {
+                this.style.transform = 'rotate(0deg) scale(1.02)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+            
+            evidenceBoard.addEventListener('mouseleave', function() {
+                this.style.transform = 'rotate(1deg) scale(1)';
+            });
+
+            // Random flicker intensity
+            setInterval(function() {
+                const flicker = document.querySelector('.flicker');
+                const intensity = Math.random() * 0.2;
+                flicker.style.opacity = intensity;
+                setTimeout(() => flicker.style.opacity = '0', 100);
+            }, Math.random() * 5000 + 2000);
+        });
+    </script>
+</body>
+</html>

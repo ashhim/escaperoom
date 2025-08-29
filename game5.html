@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Escape Room - 5</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+      padding: 30px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    body.game5-theme {
+      background: linear-gradient(135deg, #feca57, #fed976);
+    }
+    
+    h1 {
+      color: #fff;
+      font-size: 3rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+    }
+    .game-info {
+      max-width: 600px;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .game-description {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      line-height: 1.6;
+      text-align: left;
+    }
+    button {
+      background: #fff;
+      color: #ff5e62;
+      font-size: 1.5rem;
+      font-weight: bold;
+      padding: 20px 40px;
+      margin-top: 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    button:disabled {
+      background: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    button:hover:enabled {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="game5-theme">
+
+  <div class="game-info">
+    <h1>The Algorithm</h1>
+    <div class="game-description">
+      <ol>
+        <li>Work together to solve all puzzles within the time limit.</li>
+        <li>You have exactly <strong>10 minutes</strong> once the game starts.</li>
+        <li>No phones or outside help — only your brains and teamwork!</li>
+        <li>Hints will cost you precious seconds — use them wisely.</li>
+        <li>The game can only be reset by the admin.</li>
+        <li>If you leave the site before finishing your current level,<br>you’ll be eliminated and locked out.<br>Stay until you earn the next level’s key</li>
+      </ol>
+    </div>
+
+    <button id="startBtn">Start Game</button>
+    <p id="status"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDlI0S22vdMexvdUQjEFLr0I5bvFoiPwjo",
+      authDomain: "escaperoom-53adb.firebaseapp.com",
+      projectId: "escaperoom-53adb",
+      storageBucket: "escaperoom-53adb.firebasestorage.app",
+      messagingSenderId: "379297108835",
+      appId: "1:379297108835:web:48a5c5ca71b091cc567956",
+      databaseURL: "https://escaperoom-53adb-default-rtdb.firebaseio.com/"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const startBtn = document.getElementById("startBtn");
+    const statusEl = document.getElementById("status");
+
+    async function checkGameAvailability() {
+      try {
+        const activeGameSnap = await get(ref(db, "activeGame"));
+        const activeGame = activeGameSnap.val();
+        
+        if (activeGame) {
+          startBtn.disabled = true;
+          if (activeGame === "game5") {
+            statusEl.innerHTML = `
+              <div style="background: rgba(255, 165, 0, 0.2); border: 2px solid #ffaa00; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                ⚠️ already running!<br>
+                Only the admin can reset the game to start over.
+              </div>
+            `;
+          } else {
+            statusEl.innerHTML = `
+              <div style="background: rgba(255, 68, 68, 0.2); border: 2px solid #ff4444; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                🚫 Another game is currently active.<br>
+                Please wait for it to finish or reset before starting Game.
+              </div>
+            `;
+          }
+          statusEl.style.color = "#ff4444";
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error("Error checking game availability:", err);
+        return true;
+      }
+    }
+
+    startBtn.addEventListener("click", async () => {
+      const canStart = await checkGameAvailability();
+      if (!canStart) return;
+
+      try {
+        startBtn.disabled = true;
+        statusEl.textContent = "🎮 Initializing Game 5...";
+        statusEl.style.color = "#fff";
+
+        localStorage.setItem('selectedTheme', 'game5-theme');
+
+        await Promise.all([
+          set(ref(db, "activeGame"), 5),
+          set(ref(db, "timer/remaining"), 600),
+          set(ref(db, "level"), 1),
+          set(ref(db, "finalMessage"), ""),
+          set(ref(db, "timer/start"), true)
+        ]);
+
+        statusEl.textContent = "✅ Game started! Redirecting to themed background...";
+        statusEl.style.color = "#90EE90";
+        
+        setTimeout(() => {
+          window.location.href = "g5.html"; // *** Changed here ***
+        }, 1500);
+
+      } catch (err) {
+        statusEl.textContent = "❌ Error: " + err.message;
+        statusEl.style.color = "#ff4444";
+        startBtn.disabled = false;
+      }
+    });
+
+    onValue(ref(db, "activeGame"), (snapshot) => {
+      const activeGame = snapshot.val();
+      if (!activeGame || activeGame === 5) {
+        startBtn.disabled = false;
+        if (!activeGame) {
+          statusEl.textContent = "";
+        }
+      } else {
+        checkGameAvailability();
+      }
+    });
+
+    checkGameAvailability();
+  </script>
+
+</body>
+</html>
